@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: customer
+  labels:
+    app: customer
+spec:
+  replicas: 2
+  template:
+    metadata:
+      name: customer
+      labels:
+        app: customer
+        environment: test
+        tier: backend
+        department: engineering
+    spec:
+      containers:
+        - name: customer
+          image: amigoscode/kubernetes:customer-v1
+          imagePullPolicy: IfNotPresent
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+          env:
+            - name: ORDER_SERVICE
+              value: "order"
+          ports:
+            - containerPort: 8080
+      restartPolicy: Always
+  selector:
+    matchLabels:
+      app:  customer
+
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: customer-node
+spec:
+  selector:
+    app: customer
+  ports:
+    - port: 80
+      targetPort: 8080
+  type: NodePort
+
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: customer
+spec:
+  selector:
+    app: customer
+  ports:
+    - port: 80
+      targetPort: 8080
+  type: ClusterIP
